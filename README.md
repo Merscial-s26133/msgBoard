@@ -36,6 +36,28 @@ Run the focused market-world tests with:
 npm test
 ```
 
+## Public deployment: GitHub Pages and Render
+
+GitHub Pages serves the browser files, while Render runs the Node server,
+message API, and WebSocket multiplayer service. The repository is public at
+<https://github.com/Merscial-s26133/msgBoard>.
+
+1. In Render, create a Blueprint from this repository and use [`render.yaml`](./render.yaml).
+   When prompted, enter `SUPABASE_URL` and `SUPABASE_ANON_KEY` directly in
+   Render. Use the publishable/anon key, never a service-role key.
+2. After the Render service is live, copy its HTTPS URL.
+3. In the GitHub repository, open **Settings → Pages** and select **GitHub Actions**
+   as the build and deployment source.
+4. Open **Settings → Secrets and variables → Actions → Variables** and add
+   `MARKET_BACKEND_URL` with the Render HTTPS URL.
+5. Push to `main` or run the **Deploy Market Meadow to GitHub Pages** workflow.
+   The site will be available at
+   <https://merscial-s26133.github.io/msgBoard/>.
+
+The Pages workflow runs the tests and builds the browser bundle before
+deployment. The Render free service may sleep while idle, delaying the first
+connection. Live players and seller stands remain in memory on that one service.
+
 ## Supabase setup
 
 1. In the Supabase dashboard, open the project's SQL Editor.
@@ -72,15 +94,21 @@ another.
 .
 ├── market-world.js           # Shared map geometry and collision rules
 ├── public/
+│   ├── deployment-config.js # Local default for the separate backend URL
 │   ├── app.js                # Market UI, movement, drawing, and chat client
 │   ├── index.html            # Join form and game layout
 │   └── style.css             # Responsive styling
 ├── supabase/
 │   └── schema.sql            # Message table and row-level security policies
 ├── test/
-│   └── market-world.test.js  # Map collision and stand tests
+│   ├── market-world.test.js  # Map collision, stands, and bird path tests
+│   └── server-cors.test.js   # Cross-origin API preflight tests
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml  # Build and deploy the public Pages site
 ├── .env.example              # Supabase environment variable template
 ├── package-lock.json         # Locked dependency versions
 ├── package.json              # Scripts and dependencies
+├── render.yaml                # Render Node/WebSocket service definition
 └── server.js                 # HTTP API and multiplayer WebSocket server
 ```

@@ -11,6 +11,7 @@ const {
 } = require('../market-world');
 
 const joinScreen = document.querySelector('#join-screen');
+const backendBaseUrl = String(window.MARKET_BACKEND_URL || window.location.origin).replace(/\/+$/, '');
 const gameScreen = document.querySelector('#game-screen');
 const joinForm = document.querySelector('#join-form');
 const joinButton = document.querySelector('#join-button');
@@ -880,7 +881,7 @@ function colorForName(name) {
 
 async function loadChatHistory() {
   try {
-    const response = await fetch('/api/messages');
+    const response = await fetch(`${backendBaseUrl}/api/messages`);
     if (!response.ok) {
       const result = await response.json();
       throw new Error(result.error || 'The server could not load market messages.');
@@ -1014,8 +1015,9 @@ function handleSocketMessage(data) {
 function connectToMarket(profile) {
   setStatus(joinStatus, 'Connecting to the market…');
   joinButton.disabled = true;
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
+  const backendUrl = new URL(backendBaseUrl);
+  const protocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+  socket = new WebSocket(`${protocol}//${backendUrl.host}/ws`);
 
   socket.addEventListener('open', () => {
     socket.send(JSON.stringify({ type: 'join', ...profile }));

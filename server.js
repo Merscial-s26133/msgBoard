@@ -15,8 +15,14 @@ const {
 } = require('./market-world');
 require('dotenv').config();
 
-const PORT = 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 const publicDirectory = path.join(__dirname, 'public');
+const allowedOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
 const MAX_AUTHOR_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_REQUEST_SIZE = 8192;
@@ -380,6 +386,26 @@ async function handleRequest(request, response) {
   }
 
   if (requestUrl.pathname === '/api/messages') {
+    const origin = request.headers.origin;
+    if (origin && allowedOrigins.size && !allowedOrigins.has(origin)) {
+      sendJson(response, 403, { error: 'This origin is not allowed.' });
+      return;
+    }
+
+    if (origin && allowedOrigins.has(origin)) {
+      response.setHeader('Access-Control-Allow-Origin', origin);
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      response.setHeader('Access-Control-Max-Age', '86400');
+      response.setHeader('Vary', 'Origin');
+    }
+
+    if (request.method === 'OPTIONS') {
+      response.writeHead(204, { Allow: 'GET, POST, OPTIONS' });
+      response.end();
+      return;
+    }
+
     if (request.method === 'GET') {
       const result = await requestSupabase('messages?select=id,author,text,created_at&order=created_at.desc,id.desc');
       sendJson(response, 200, await result.json());
@@ -470,6 +496,13 @@ server.on('upgrade', (request, socket, head) => {
     return;
   }
 
+  const origin = request.headers.origin;
+  if (origin && allowedOrigins.size && !allowedOrigins.has(origin)) {
+    socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+
   webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
     webSocketServer.emit('connection', webSocket, request);
   });
@@ -503,5 +536,7 @@ webSocketServer.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Market Meadow is running at http://localhost:${PORT}`);
+  const address = server.address();
+  const port = address && typeof address === 'object' ? address.port : PORT;
+  console.log(`Market Meadow is running at http://localhost:${port}`);
 });
