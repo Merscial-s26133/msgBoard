@@ -3,25 +3,160 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>KIC Message Board</title>
+    <meta name="theme-color" content="#f6edda">
+    <title>Market Meadow</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="/app.js" defer></script>
+    <script src="/app.bundle.js" defer></script>
   </head>
   <body>
-    <main class="page">
-      <header class="page-header">
-        <p class="eyebrow">KIC Web Application Starter</p>
-        <h1>Message Board</h1>
-        <p class="intro">A small example of a frontend getting data from a backend.</p>
-      </header>
+    <main class="app-shell">
+      <section id="join-screen" class="join-screen" aria-labelledby="join-title">
+        <div class="join-card">
+          <p class="eyebrow"><span aria-hidden="true">🥕</span> A little market for everyone</p>
+          <h1 id="join-title">Market Meadow</h1>
+          <p class="intro">Pick a name and a crayon-drawn friend. Then wander the market and say hello.</p>
 
-      <section aria-labelledby="messages-heading">
-        <div class="section-heading">
-          <h2 id="messages-heading">Latest messages</h2>
-          <span id="message-count" class="message-count" aria-live="polite"></span>
+          <form id="join-form" class="join-form">
+            <label for="player-name">Your name</label>
+            <input id="player-name" name="name" type="text" maxlength="24" autocomplete="nickname" required>
+
+            <fieldset class="choice-fieldset">
+              <legend>How will you join?</legend>
+              <div class="role-options">
+                <label class="choice-card">
+                  <input type="radio" name="role" value="visitor" checked>
+                  <span class="choice-card-content">
+                    <strong>Visitor</strong>
+                    <small>Wander, chat, and explore.</small>
+                  </span>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="role" value="seller">
+                  <span class="choice-card-content">
+                    <strong>Seller</strong>
+                    <small>Claim a stand and share your produce.</small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div id="seller-products-field" class="field" hidden>
+              <label for="seller-products">What are you selling?</label>
+              <input
+                id="seller-products"
+                name="products"
+                type="text"
+                maxlength="120"
+                placeholder="Tomatoes $3, okra $2"
+              >
+              <small>Your stand is yours while you are online. No checkout or payments.</small>
+            </div>
+
+            <fieldset class="choice-fieldset">
+              <legend>Choose your avatar</legend>
+              <div class="avatar-options">
+                <label class="avatar-choice">
+                  <input type="radio" name="avatar" value="girl" checked>
+                  <span>Girl</span>
+                </label>
+                <label class="avatar-choice">
+                  <input type="radio" name="avatar" value="boy">
+                  <span>Boy</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="choice-fieldset color-fieldset">
+              <legend>Choose your color</legend>
+              <div id="color-options" class="color-options">
+                <button type="button" class="color-swatch selected" data-color="#e66b5b" aria-label="Coral" aria-pressed="true"></button>
+                <button type="button" class="color-swatch" data-color="#f2a94a" aria-label="Orange" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#e3c84b" aria-label="Sunshine" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#64a879" aria-label="Leaf green" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#54a9a0" aria-label="Teal" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#5893c8" aria-label="Blue" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#8e79bd" aria-label="Lilac" aria-pressed="false"></button>
+                <button type="button" class="color-swatch" data-color="#d36a92" aria-label="Pink" aria-pressed="false"></button>
+              </div>
+            </fieldset>
+
+            <div class="preview-row">
+              <canvas id="avatar-preview" width="160" height="180" aria-label="Your selected avatar"></canvas>
+              <p id="role-note" class="role-note">You can explore every path and meet the market regulars.</p>
+            </div>
+
+            <p id="join-status" class="status" role="status" aria-live="polite"></p>
+            <button id="join-button" class="primary-button" type="submit">Enter the market</button>
+          </form>
         </div>
-        <p id="status" class="status" role="status">Loading messages...</p>
-        <ul id="messages" class="messages" aria-label="Messages"></ul>
+        <aside class="join-art" aria-label="Market Meadow features">
+          <div class="market-sticker sticker-tomato" aria-hidden="true">🍅</div>
+          <div class="market-sticker sticker-corn" aria-hidden="true">🌽</div>
+          <div class="market-sticker sticker-carrot" aria-hidden="true">🥕</div>
+          <div class="join-art-copy">
+            <p class="eyebrow">Take it slow</p>
+            <h2>Stroll. Share. Stay awhile.</h2>
+            <p>Find a stall, dodge the chickens, and leave a little message for the next person passing by.</p>
+          </div>
+          <p class="online-note"><span class="online-dot"></span> A shared guest market</p>
+        </aside>
+      </section>
+
+      <section id="game-screen" class="game-screen" aria-label="Market Meadow" hidden>
+        <header class="game-header">
+          <a class="game-brand" href="/" aria-label="Market Meadow home">
+            <span class="brand-vegetable" aria-hidden="true">🥬</span>
+            <span>Market Meadow</span>
+          </a>
+          <div class="market-status">
+            <span id="connection-status" class="connection-status">Connecting…</span>
+            <span id="online-count" class="count-pill">0 in market</span>
+            <span id="stand-count" class="count-pill">6 stands</span>
+          </div>
+          <button id="leave-market" class="quiet-button" type="button">Change character</button>
+        </header>
+
+        <div class="game-layout">
+          <div class="world-panel">
+            <canvas
+              id="world-canvas"
+              tabindex="0"
+              aria-label="Market map. Move with arrow keys or W A S D. Avoid the stands, baskets, and chicken pen."
+            ></canvas>
+            <p class="world-hint">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</p>
+            <div id="touch-controls" class="touch-controls" aria-label="Touch movement controls">
+              <button type="button" data-direction="up" aria-label="Move up">↑</button>
+              <div class="touch-row">
+                <button type="button" data-direction="left" aria-label="Move left">←</button>
+                <button type="button" data-direction="down" aria-label="Move down">↓</button>
+                <button type="button" data-direction="right" aria-label="Move right">→</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="chat-panel" aria-label="Market chat">
+            <div class="chat-heading">
+              <p class="eyebrow">Say hello</p>
+              <h2>Market chatter</h2>
+              <p>Messages stay above their sender until they say something new.</p>
+            </div>
+            <ol id="chat-history" class="chat-history" aria-live="polite" aria-relevant="additions"></ol>
+            <p id="game-status" class="status" role="status" aria-live="polite"></p>
+            <form id="chat-form" class="chat-form">
+              <label class="visually-hidden" for="chat-input">Your message</label>
+              <input
+                id="chat-input"
+                name="message"
+                type="text"
+                maxlength="280"
+                placeholder="Say something kind…"
+                autocomplete="off"
+                required
+              >
+              <button class="send-button" type="submit" aria-label="Send message">Send</button>
+            </form>
+          </aside>
+        </div>
       </section>
     </main>
   </body>
